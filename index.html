@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TON Wallet Integration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f2f5;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 15px;
+      font-size: 1rem;
+      color: #fff;
+      background: #007aff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 15px;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #005bb5;
+    }
+
+    .wallet-info {
+      margin-top: 20px;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .wallet-info .label {
+      font-weight: bold;
+    }
+
+    .balance {
+      font-size: 1.2rem;
+      color: #28a745;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TON Wallet Integration</h1>
+    <button id="connectWallet" class="btn">Connect Wallet</button>
+    <div id="walletInfo" class="wallet-info" style="display: none;">
+      <div><span class="label">Address:</span> <span id="walletAddress"></span></div>
+      <div class="balance"><span id="walletBalance"></span> TON</div>
+    </div>
+  </div>
+
+  <script>
+    async function connectTONWallet() {
+      try {
+        const provider = new TonWeb.HttpProvider('https://toncenter.com/api/v2/jsonRPC');
+        const tonweb = new TonWeb(provider);
+
+        if (!window.ton) {
+          alert("TON Wallet not found. Please install the TON Wallet extension.");
+          return;
+        }
+
+        const walletAddress = await window.ton.send("ton_requestAccounts");
+
+        if (!walletAddress || walletAddress.length === 0) {
+          alert("Wallet connection was not successful.");
+          return;
+        }
+
+        document.getElementById("walletAddress").textContent = walletAddress[0];
+        document.getElementById("walletInfo").style.display = "block";
+
+        const balanceResponse = await provider.send("get_account_balance", { address: walletAddress[0] });
+        const walletBalance = balanceResponse.result / 1e9;
+        document.getElementById("walletBalance").textContent = walletBalance.toFixed(3);
+
+        document.getElementById("connectWallet").style.display = "none";
+      } catch (error) {
+        console.error("Error connecting to TON Wallet:", error);
+        alert("Failed to connect to TON Wallet. Please try again.");
+      }
+    }
+
+    document.getElementById("connectWallet").addEventListener("click", connectTONWallet);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/tonweb/dist/tonweb.js"></script>
+</body>
+</html>
